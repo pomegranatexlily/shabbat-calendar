@@ -6,7 +6,7 @@ on:
   schedule:
     - cron: '23 9 * * *'
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 concurrency:
@@ -26,6 +26,18 @@ jobs:
       - name: Verify seasonal 12- and 13-month calculations
         run: python -m unittest -v test_intercalation.py test_dual_tracks.py
       - run: python generate.py
+      - name: Publish the audited canonical JSON to repository-backed Pages
+        shell: bash
+        run: |
+          # GitHub Pages can also be configured to build from main via Jekyll.
+          # Keep the actual generated feed in the source root so either
+          # publishing method serves /shabbat-calendar/calendar.json.
+          cp public/calendar.json calendar.json
+          git add calendar.json
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Update published canonical Shabbat Calendar JSON"
+            git push origin HEAD:main
+          fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
