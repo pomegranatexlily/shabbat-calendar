@@ -22,13 +22,14 @@
 <section class="calendar-shell" aria-labelledby="calendar-heading">
   <div class="section-head">
     <p class="eyebrow">Explore the covenant year</p>
-    <h2 id="calendar-heading">Two calendar tracks</h2>
-    <p>These cycles are offset by one lunar month. Neither overrides the other.</p>
+    <h2 id="calendar-heading">Your lunar calendar</h2>
+    <p>Switch between the two year-start traditions. Your New Moons and Shabbats stay on the same lunar dates.</p>
   </div>
   <div id="track-tabs" class="track-tabs" role="group" aria-label="Choose Israelite calendar track">
-    <button type="button" data-track="earlier" class="track-tab" aria-pressed="true"><strong>Earlier calendar</strong><span>2027 begins March 9</span></button>
-    <button type="button" data-track="later" class="track-tab" aria-pressed="false"><strong>Later calendar</strong><span>2027 begins April 7</span></button>
+    <button type="button" data-track="earlier" class="track-tab" aria-pressed="true"><strong>Early Start</strong><span>2027 New Year · March 9</span></button>
+    <button type="button" data-track="later" class="track-tab" aria-pressed="false"><strong>Late Start</strong><span>2027 New Year · April 7</span></button>
   </div>
+  <button id="up-next" type="button" class="up-next" aria-label="Open next Shabbat"></button>
   <div id="year-summary" class="year-summary" aria-live="polite"></div>
   <div class="month-nav">
     <button id="previous-month" type="button" class="icon-btn" aria-label="Previous month">‹</button>
@@ -37,8 +38,8 @@
   </div>
   <div class="quick-nav">
     <button type="button" id="jump-today">Today</button>
-    <button type="button" id="jump-year-start">Year start</button>
-    <label>Year <select id="choose-year" aria-label="Select Israelite year"></select></label>
+    <button type="button" id="jump-year-start">Next New Year</button>
+    <label>Year <select id="choose-year" aria-label="Jump to Israelite year"></select></label>
   </div>
   <div class="legend" aria-label="Event legend">
     <span><i class="dot moon"></i>New Moon</span>
@@ -59,14 +60,14 @@
   <p class="eyebrow">Portable records</p>
   <h2 id="feeds-heading">Calendar feeds and data</h2>
   <p>Subscribe to a planning ICS feed in Apple Calendar to receive updated projections. A one-time import will not keep updating.</p>
-  <div class="links">
-    <a href="earlier-planning.ics">Earlier calendar ICS</a>
-    <a href="later-planning.ics">Later calendar ICS</a>
-    <a href="track-calendar.csv">Two-track CSV</a>
-    <a href="track-years.csv">12/13-month summary</a>
-    <a href="calendar.json">Full JSON</a>
-    <a href="supplied.ics">Supplied historical events</a>
-  </div>
+  <details class="feed-details"><summary>Calendar subscriptions and exports</summary><div class="links">
+    <a href="earlier-planning.ics">Subscribe · Early Start</a>
+    <a href="later-planning.ics">Subscribe · Late Start</a>
+    <a href="track-calendar.csv">Download event data</a>
+    <a href="track-years.csv">Download year cycles</a>
+    <a href="calendar.json">App data</a>
+    <a href="supplied.ics">Past observances</a>
+  </div></details>
 </section>
 <footer>Shabbat Calendar · Pomegranate × Lily · Source dates and calculated dates remain distinct.</footer>
 </main>
