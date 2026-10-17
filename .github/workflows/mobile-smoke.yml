@@ -1,10 +1,12 @@
 name: Shabbat Calendar Mobile UI
 on:
+  pull_request:
   push:
     branches: [main]
     paths:
       - 'public/**'
       - 'generate.py'
+      - 'calendar_audit.py'
       - 'dual_tracks.py'
       - 'intercalation.py'
       - 'config.json'

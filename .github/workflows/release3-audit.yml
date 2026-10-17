@@ -1,0 +1,32 @@
+name: Verify calendar audit
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths:
+      - 'calendar_audit.py'
+      - 'dual_tracks.py'
+      - 'generate.py'
+      - 'intercalation.py'
+      - 'config.json'
+      - 'test_dual_tracks.py'
+      - 'test_intercalation.py'
+      - '.github/workflows/release3-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  calendar-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify 12 and 13 month classification, correct Sabbath days and no approvals
+        run: python -m unittest -v test_intercalation.py test_dual_tracks.py
+      - name: Generate calendar and verification report
+        run: |
+          python generate.py
+          python -c 'import json; d=json.load(open("public/calendar.json")); a=json.load(open("public/calendar-audit.json")); assert d["verification"]==a; assert a["2027_year_starts_observed"] is False; assert a["unresolved"]["Shavuot_counting"]=="not_selected"; print("PASS: Published schema and audit report agree")'

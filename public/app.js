@@ -158,9 +158,40 @@
   function jumpTo(date){
     const d=dt(date);state.selected=date;state.year=d.getUTCFullYear();state.month=d.getUTCMonth();draw();
   }
+  function renderAudit(audit){
+    const target=byId("verification-details");
+    if(!target)return;
+    target.replaceChildren();
+    if(!audit||audit.version!==1){
+      target.append(node("p","Audit unavailable. Future observations and feast dates remain unverified.","muted"));return;
+    }
+    const checks=audit.checks||{};
+    target.append(node("p",
+      "Checked: "+checks.lunar_months_checked+" lunar-month spans; "+
+      checks.year_span_classifications_checked+" yearly 12/13-month classifications; "+
+      checks.event_positions_checked+" event positions.","muted"));
+    target.append(node("p","These are arithmetic checks only—not verified local crescent sightings, Abib evidence, or approved observances.","muted"));
+    const unresolved=[
+      ["local_crescent_visibility","Crescent visibility"],
+      ["local_sunset_boundaries","Local sunset boundaries"],
+      ["Abib_or_agricultural_evidence","Abib / agriculture"],
+      ["intercalation_policy","Intercalation"],
+      ["annual_feast_rule_approval","Annual feast dates"],
+      ["Shavuot_counting","Shavuot count"],
+      ["makeup_rules","Makeup rules"],
+      ["historical_2026_year_numbering","2026 year numbering"]
+    ];
+    const ul=node("ul");
+    for(const [key,label] of unresolved){
+      ul.append(node("li",label+": "+
+        String(audit.unresolved?.[key]??"not verified").replaceAll("_"," ")));
+    }
+    target.append(ul);
+  }
   function setup(data){
     if(data.schema_version!==2||!data.tracks?.earlier||!data.tracks?.later)throw Error("Unsupported two-track calendar feed");
     state.data=data;
+    renderAudit(data.verification);
     for(const trackId of ["earlier","later"]){
       if(!data.tracks[trackId].years?.length||!data.tracks[trackId].months?.length)throw Error("Empty lunar-year series");
     }

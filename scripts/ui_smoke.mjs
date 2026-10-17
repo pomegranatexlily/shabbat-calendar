@@ -18,6 +18,11 @@ try {
  assert.match(await page.locator("#selected-day .lunar-context").innerText(),/Lunar Day 8/);
  assert.equal(await page.locator("#selected-day .event h4").first().innerText(),"Shabbat");
  assert.equal(await page.locator(".track-tab[aria-pressed=true] strong").innerText(),"Early Start");
+ await page.locator("#verification-audit summary").click();
+ await page.locator("#verification-details").getByText(/Checked: \d+ lunar-month spans/).waitFor();
+ assert.match(await page.locator("#verification-details").innerText(),/Shavuot count: not selected/);
+ assert.match(await page.locator("#verification-details").innerText(),/Crescent visibility: not verified/);
+ assert.match(await page.locator("#verification-details").innerText(),/Annual feast dates: not approved/);
  await page.screenshot({path:"out/screenshots/current-october-mobile.png",fullPage:false});
  await page.locator("#jump-today").click();
  assert.equal(await page.locator("#month-heading").innerText(),"October 2026");
