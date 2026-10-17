@@ -102,3 +102,31 @@ footer{padding-top:24px;text-align:center;color:var(--muted);font-size:11px}
 .feed-details summary{cursor:pointer;font-weight:700;color:var(--gold);padding:8px 0}
 .feed-details .links{margin-top:8px}
 @media(max-width:600px){.up-next{margin-top:14px;padding:13px 14px}.up-next-date{font-size:22px}}
+
+/* Mobile first-glance: put the actual month grid in the first viewport.
+   Keep the observed/supplied-vs-projected distinction in the day details. */
+@media(max-width:600px){
+  .masthead{padding:10px 5px 12px}
+  .brand{gap:10px}
+  .moonmark{width:43px;height:43px;font-size:25px;border-radius:11px}
+  .brand h1{font-size:30px;letter-spacing:-.03em}
+  .brand p{margin:2px 0 0;font-size:10px}
+  .masthead>.eyebrow{font-size:9px;margin:0 0 6px}
+  .masthead>.intro{display:none}
+  .calendar-shell{padding:11px 9px 18px}
+  .section-head{margin-bottom:10px}
+  .section-head .eyebrow{display:none}
+  .section-head h2{font-size:23px}
+  .section-head>p:last-child{margin:4px 0 0;font-size:11px}
+  .track-tab{padding:8px 10px}
+  .year-summary{gap:5px 10px;padding:10px 11px;margin:9px 0 13px}
+  .year-summary small{font-size:10px}
+  .up-next{margin:10px 0 9px;padding:10px 12px}
+  .up-next-date{font-size:21px}
+  .up-next-label{font-size:9px}
+  .up-next-meta{font-size:11px}
+  .month-nav{margin-top:0}
+  .month-nav h3{font-size:27px}
+  .quick-nav{margin:5px 0 10px}
+  .legend{margin:0 0 8px}
+}
