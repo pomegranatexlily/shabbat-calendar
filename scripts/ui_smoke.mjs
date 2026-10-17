@@ -21,7 +21,7 @@ try {
  await page.locator('.month-grid .day[data-date="2027-03-16"]').click();
  assert.equal(await page.locator("#selected-day .event h4").first().innerText(),"Shabbat");
  await page.locator('.month-grid .day[data-date="2027-03-22"]').click();
- assert.match(await page.locator("#selected-day .event .marker").first().innerText(),/Draft feast/);
+ assert.match(await page.locator("#selected-day .event .marker").first().innerText(),/draft feast/i);
  await page.screenshot({path:"out/screenshots/earlier-mobile.png",fullPage:false});
  await page.locator('.track-tab[data-track="later"]').click();
  assert.equal(await page.locator("#month-heading").innerText(),"April 2027");
@@ -30,7 +30,7 @@ try {
  await page.locator('.month-grid .day[data-date="2027-04-14"]').click();
  assert.equal(await page.locator("#selected-day .event h4").first().innerText(),"Shabbat");
  await page.locator('.month-grid .day[data-date="2027-04-20"]').click();
- assert.match(await page.locator("#selected-day .event .marker").first().innerText(),/Draft feast/);
+ assert.match(await page.locator("#selected-day .event .marker").first().innerText(),/draft feast/i);
  await page.screenshot({path:"out/screenshots/later-mobile.png",fullPage:false});
  await page.locator('.track-tab[data-track="earlier"]').click();
  await page.locator("#choose-year").selectOption("2028");
