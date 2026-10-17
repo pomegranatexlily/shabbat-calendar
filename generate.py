@@ -94,8 +94,25 @@ def ics(events, name):
     lines.append('END:VCALENDAR')
     return ('\r\n'.join(fold(s) for s in lines) + '\r\n').encode('utf-8')
 
+def extend_window(c, today_year=None):
+    """Keep a rolling calendar horizon without rewriting supplied anchor dates.
+
+    Called for publication, not for historical regression fixtures: a new
+    year adds one future year rather than growing a never-ending physical CSV.
+    """
+    from datetime import datetime, timezone
+    today_year = today_year if today_year is not None else datetime.now(timezone.utc).year
+    horizon = int(c.get('rolling_years_ahead', 8))
+    if horizon < 1 or horizon > 20:
+        raise ValueError('rolling_years_ahead must be between 1 and 20')
+    cfg = dict(c)
+    cfg['end_year'] = max(int(cfg['end_year']), today_year + horizon)
+    if cfg['end_year'] > 2098:
+        raise ValueError('Rolling horizon exceeds the configured equinox approximation range')
+    return cfg
+
 def main():
-    c = json.loads(Path('config.json').read_text(encoding='utf-8'))
+    c = extend_window(json.loads(Path('config.json').read_text(encoding='utf-8')))
     data = build(c)
     out = Path('public')
     out.mkdir(exist_ok=True)
