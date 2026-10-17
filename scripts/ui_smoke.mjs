@@ -1,0 +1,46 @@
+/* Shabbat website mobile regression: both 2027 tracks, draft dates, year 13. */
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import {chromium} from "playwright";
+const browser=await chromium.launch({headless:true});
+const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1});
+const errors=[];
+page.on("pageerror",e=>errors.push(e.message));
+page.on("console",m=>{if(m.type()==="error")errors.push(m.text())});
+fs.mkdirSync("out/screenshots",{recursive:true});
+try {
+ await page.goto("http://127.0.0.1:8766/",{waitUntil:"domcontentloaded"});
+ await page.locator('.track-tab[data-track="earlier"]').waitFor();
+ await page.locator('.month-grid .day[data-date="2027-03-09"]').waitFor({timeout:20000});
+ assert.equal(await page.locator("#month-heading").innerText(),"March 2027");
+ assert.equal(await page.locator(".month-grid .weekday").count(),7);
+ assert.equal((await page.locator(".month-grid .day").count())%7,0);
+ assert.equal(await page.locator('.track-tab[data-track="earlier"]').getAttribute("aria-pressed"),"true");
+ await page.locator('.month-grid .day[data-date="2027-03-09"]').click();
+ assert.match(await page.locator("#selected-day .lunar-context").innerText(),/Month 1 · Day 1/);
+ await page.locator('.month-grid .day[data-date="2027-03-16"]').click();
+ assert.equal(await page.locator("#selected-day .event h4").first().innerText(),"Shabbat");
+ await page.locator('.month-grid .day[data-date="2027-03-22"]').click();
+ assert.match(await page.locator("#selected-day .event .marker").first().innerText(),/Draft feast/);
+ await page.screenshot({path:"out/screenshots/earlier-mobile.png",fullPage:false});
+ await page.locator('.track-tab[data-track="later"]').click();
+ assert.equal(await page.locator("#month-heading").innerText(),"April 2027");
+ await page.locator('.month-grid .day[data-date="2027-04-07"]').click();
+ assert.match(await page.locator("#selected-day .lunar-context").innerText(),/Month 1 · Day 1/);
+ await page.locator('.month-grid .day[data-date="2027-04-14"]').click();
+ assert.equal(await page.locator("#selected-day .event h4").first().innerText(),"Shabbat");
+ await page.locator('.month-grid .day[data-date="2027-04-20"]').click();
+ assert.match(await page.locator("#selected-day .event .marker").first().innerText(),/Draft feast/);
+ await page.screenshot({path:"out/screenshots/later-mobile.png",fullPage:false});
+ await page.locator('.track-tab[data-track="earlier"]').click();
+ await page.locator("#choose-year").selectOption("2028");
+ assert.equal(await page.locator("#month-heading").innerText(),"February 2028");
+ assert.match(await page.locator("#year-summary").innerText(),/13 lunar months/);
+ assert.match(await page.locator("#year-summary").innerText(),/February 14, 2029/);
+ await page.locator("#next-month").click();
+ assert.equal(await page.locator("#month-heading").innerText(),"March 2028");
+ await page.locator("#jump-year-start").click();
+ assert.equal(await page.locator("#month-heading").innerText(),"February 2028");
+ assert.deepEqual(errors,[]);
+ console.log("PASS: two-track mobile calendar, first new moons, first Sabbaths, draft Passover, and 13th-month banner");
+}finally{await browser.close()}
