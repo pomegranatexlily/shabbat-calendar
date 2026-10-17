@@ -5,6 +5,7 @@ from datetime import date, timedelta, datetime, timezone
 from pathlib import Path
 from intercalation import seasonal_years, annotate_months
 from dual_tracks import create_tracks
+from calendar_audit import audit_calendar
 
 MEAN_LUNATION = 29.530588853
 
@@ -68,7 +69,9 @@ def build(c):
             events.append({'id': str(uuid.uuid5(uuid.NAMESPACE_URL, 'shabbat-calendar/' + key)), **item, 'kind': 'feast', 'window': 'primary', 'status': 'supplied', 'month_index': None, 'lunar_day': None})
     events.sort(key=lambda e: (e['date'], e['title']))
     assert len({e['id'] for e in events}) == len(events), 'Duplicate event IDs'
-    return {'schema_version': 2, 'months': published_months, 'seasonal_years': yearly_intercalation, 'tracks': tracks, 'events': events, 'pending': pending, 'method': '12-/13-month equinox-aligned planning projection from mean lunar months. Neither a crescent sighting nor a finalized annual feast ruling.'}
+    result = {'schema_version': 2, 'months': published_months, 'seasonal_years': yearly_intercalation, 'tracks': tracks, 'events': events, 'pending': pending, 'method': '12-/13-month equinox-aligned planning projection from mean lunar months. Neither a crescent sighting nor a finalized annual feast ruling.'}
+    result['verification'] = audit_calendar(result, c)
+    return result
 
 def escape(s):
     return s.replace('\\', '\\\\').replace('\n', '\\n').replace(';', '\\;').replace(',', '\\,')
@@ -117,6 +120,7 @@ def main():
     out = Path('public')
     out.mkdir(exist_ok=True)
     (out / 'calendar.json').write_text(json.dumps(data, indent=2), encoding='utf-8')
+    (out / 'calendar-audit.json').write_text(json.dumps(data['verification'], indent=2), encoding='utf-8')
     # Parallel feeds use one lunar series; never duplicate a makeup
     # observance within one track when the other track represents it.
     with (out / 'track-years.csv').open('w', newline='', encoding='utf-8') as f:
