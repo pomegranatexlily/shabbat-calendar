@@ -3,24 +3,29 @@ import json
 import uuid
 from datetime import date, timedelta, datetime, timezone
 from pathlib import Path
+from intercalation import seasonal_years, annotate_months
 
 MEAN_LUNATION = 29.530588853
 
 def build(c):
     lo = date(c['start_year'], 1, 1)
     hi = date(c['end_year'] + 1, 1, 1)
+    planning_hi = date(c['end_year'] + 1, 6, 1)
     anchor = date.fromisoformat(c['projection_anchor'])
     known = {int(k): date.fromisoformat(v) for k, v in c['supplied_month_starts'].items()}
     months = []
     n = min(known)
     while True:
         d = known.get(n, anchor + timedelta(days=int(n * MEAN_LUNATION + 0.5)))
-        if d >= hi:
+        if d >= planning_hi:
             break
         months.append({'index': n, 'date': d.isoformat(), 'status': 'supplied' if n in known else 'projected'})
         n += 1
     for a, b in zip(months, months[1:]):
         assert (date.fromisoformat(b['date']) - date.fromisoformat(a['date'])).days in (29, 30), 'Invalid month gap'
+    yearly_intercalation = seasonal_years(months, c['start_year'], c['end_year'])
+    annotate_months(months, yearly_intercalation)
+    published_months = [m for m in months if date.fromisoformat(m['date']) < hi]
     by_index = {m['index']: m for m in months}
     events = []
     pending = []
@@ -30,14 +35,14 @@ def build(c):
             return
         key = identity or f"month:{m['index']}:{day}:{kind}"
         events.append({'id': str(uuid.uuid5(uuid.NAMESPACE_URL, 'shabbat-calendar/' + key)), 'date': d.isoformat(), 'title': title, 'kind': kind, 'window': window, 'status': status or m['status'], 'month_index': m['index'], 'lunar_day': day})
-    for m in months:
+    for m in published_months:
         add(m, 1, 'New Moon', 'new_moon')
         for day in (8, 15, 22, 29):
             add(m, day, 'Shabbat', 'sabbath')
     for year in range(c['start_year'], c['end_year'] + 1):
         annual = c.get('abib_anchors', {}).get(str(year))
         if not annual:
-            pending.append({'year': year, 'reason': 'Abib 1 not established; annual feasts withheld.'})
+            pending.append({'year': year, 'reason': 'Projected season-aligned starts available; unapproved annual feast and Abib decisions remain withheld.'})
             continue
         first = next((m for m in months if m['date'] == annual['date']), None)
         if first is None:
@@ -61,7 +66,7 @@ def build(c):
             events.append({'id': str(uuid.uuid5(uuid.NAMESPACE_URL, 'shabbat-calendar/' + key)), **item, 'kind': 'feast', 'window': 'primary', 'status': 'supplied', 'month_index': None, 'lunar_day': None})
     events.sort(key=lambda e: (e['date'], e['title']))
     assert len({e['id'] for e in events}) == len(events), 'Duplicate event IDs'
-    return {'months': months, 'events': events, 'pending': pending, 'method': 'Mean-lunation planning only; not a crescent-visibility calculation. Shavuot counting rule pending.'}
+    return {'months': published_months, 'seasonal_years': yearly_intercalation, 'events': events, 'pending': pending, 'method': '12-/13-month equinox-aligned planning projection from mean lunar months. Neither a crescent sighting nor a finalized annual feast ruling.'}
 
 def escape(s):
     return s.replace('\\', '\\\\').replace('\n', '\\n').replace(';', '\\;').replace(',', '\\,')
@@ -93,6 +98,11 @@ def main():
     out = Path('public')
     out.mkdir(exist_ok=True)
     (out / 'calendar.json').write_text(json.dumps(data, indent=2), encoding='utf-8')
+    with (out / 'intercalation.csv').open('w', newline='', encoding='utf-8') as f:
+        columns=['year','first_month_start','next_first_month_start','month_count','has_13th_month','thirteenth_month_start','status','march_equinox_utc_estimate']
+        w=csv.DictWriter(f,fieldnames=columns,extrasaction='ignore')
+        w.writeheader()
+        w.writerows(data['seasonal_years'])
     with (out / 'calendar.csv').open('w', newline='', encoding='utf-8') as f:
         w = csv.DictWriter(f, fieldnames=['id', 'date', 'title', 'kind', 'window', 'status', 'month_index', 'lunar_day'])
         w.writeheader()
