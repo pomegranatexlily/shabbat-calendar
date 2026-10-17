@@ -19,6 +19,22 @@ class ParallelTracksTests(unittest.TestCase):
                 and (year is None or e["year"]==year)
                 and (title is None or e["title"]==title)]
 
+    def test_current_supplied_cycle_october_2026(self):
+        for track in (self.early,self.late):
+            starts={m["start"]:m for m in track["current_months"]}
+            self.assertIn("2026-10-12",starts)
+            self.assertEqual(starts["2026-10-12"]["status"],"supplied")
+            self.assertIsNone(starts["2026-10-12"]["month"])
+            first=[e for e in track["current_events"]
+                   if e["date"]=="2026-10-19" and e["kind"]=="sabbath"]
+            self.assertEqual(len(first),1)
+            self.assertEqual(first[0]["lunar_day"],8)
+            self.assertEqual(first[0]["status"],"supplied")
+            self.assertIsNone(first[0]["year"])
+            self.assertIsNone(first[0]["month"])
+            self.assertEqual(len({e["id"] for e in track["events"]+track["current_events"]}),
+                             len(track["events"]+track["current_events"]))
+
     def test_2027_two_new_years_and_first_shabbats(self):
         self.assertEqual(self.early["years"][0]["start_date"],"2027-03-09")
         self.assertEqual(self.late["years"][0]["start_date"],"2027-04-07")
