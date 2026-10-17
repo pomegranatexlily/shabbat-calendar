@@ -5,6 +5,13 @@ on:
     branches: [main]
     paths:
       - 'calendar_audit.py'
+      - 'calendar.json'
+      - 'calendar-audit.json'
+      - 'public/calendar.json'
+      - 'public/calendar-audit.json'
+      - '.nojekyll'
+      - 'index.html'
+      - 'scripts/test_publication_source.py'
       - 'dual_tracks.py'
       - 'generate.py'
       - 'intercalation.py'
@@ -24,6 +31,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Validate root and public feed availability
+        run: python3 scripts/test_publication_source.py
       - name: Verify 12 and 13 month classification, correct Sabbath days and no approvals
         run: python -m unittest -v test_intercalation.py test_dual_tracks.py
       - name: Generate calendar and verification report

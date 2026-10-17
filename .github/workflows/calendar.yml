@@ -6,7 +6,7 @@ on:
   schedule:
     - cron: '23 9 * * *'
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 concurrency:
@@ -25,7 +25,22 @@ jobs:
           python-version: '3.12'
       - name: Verify seasonal 12- and 13-month calculations
         run: python -m unittest -v test_intercalation.py test_dual_tracks.py
-      - run: python generate.py
+      - name: Generate and verify both published feed roots
+        run: |
+          python generate.py
+          cp public/calendar.json calendar.json
+          cp public/calendar-audit.json calendar-audit.json
+          python scripts/test_publication_source.py
+      - name: Keep source-controlled feed current for legacy Pages
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add calendar.json calendar-audit.json public/calendar.json public/calendar-audit.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Refresh canonical published calendar from verified generator"
+            git push origin HEAD:refs/heads/main
+          fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -33,3 +48,17 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify live public calendar feed URL and both track anchors
+        run: |
+          URL="https://pomegranatexlily.github.io/shabbat-calendar/calendar.json"
+          for attempt in $(seq 1 12); do
+            if curl --fail --silent --show-error --location --max-time 12 "$URL" -o /tmp/live-shabbat-calendar.json && \
+              python3 -c 'import json; d=json.load(open("/tmp/live-shabbat-calendar.json")); assert d["schema_version"]==2; assert d["tracks"]["earlier"]["years"][0]["start_date"]=="2027-03-09"; assert d["tracks"]["later"]["years"][0]["start_date"]=="2027-04-07"'; then
+              echo "PASS verified hosted Shabbat Calendar JSON"
+              exit 0
+            fi
+            echo "Public feed not ready, attempt $attempt"
+            sleep 5
+          done
+          echo "FAIL: hosted calendar feed is missing or invalid"
+          exit 1
