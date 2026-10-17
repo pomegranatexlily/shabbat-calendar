@@ -1,0 +1,92 @@
+/* Shabbat Calendar — phone-first dark parchment and restrained covenant gold. */
+:root{color-scheme:dark;--bg:#101718;--panel:#172123;--panel2:#1b292a;--line:#364345;--text:#f3efe5;--muted:#adb9b7;--gold:#e4bf70;--gold2:#b98e42;--moon:#67a9d7;--sabbath:#d26b78;--feast:#d4ae60;--prep:#879694;--radius:17px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;min-width:320px;background:radial-gradient(ellipse at 15% -15%,#263d38 0,transparent 50%),var(--bg);color:var(--text);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,select{font:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+a{color:var(--gold)}
+.shell{width:min(100%,960px);padding:25px clamp(13px,4vw,34px) 50px;margin:0 auto}
+.eyebrow{color:var(--gold);font-size:10px;font-weight:750;letter-spacing:.2em;text-transform:uppercase;margin:0 0 13px}
+.masthead{padding:24px 0 27px}
+.brand{display:flex;align-items:center;gap:16px}
+.moonmark{width:59px;height:59px;display:grid;place-items:center;border:1px solid #665c44;border-radius:15px;color:var(--gold);font-size:36px;background:linear-gradient(140deg,#28362d,#141d1b);flex:none}
+h1,h2,h3,h4{font-family:Georgia,"Times New Roman",serif;font-weight:500;line-height:1.17;margin:0}
+h1{font-size:clamp(31px,5.2vw,49px);letter-spacing:-.04em}
+.brand p{font-size:12px;letter-spacing:.08em;color:var(--gold);margin:8px 0 0}
+.intro{font-size:14px;color:var(--muted);max-width:700px;margin:20px 0 0}
+.calendar-shell,.information,.downloads{border:1px solid var(--line);border-radius:var(--radius);padding:clamp(14px,3vw,27px);background:var(--panel)}
+.section-head{margin-bottom:17px}
+.section-head h2{font-size:clamp(24px,4vw,32px)}
+.section-head>p:last-child{color:var(--muted);font-size:13px;margin:7px 0 0}
+.track-tabs{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.track-tab{border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--muted);text-align:left;padding:14px 17px;display:grid;gap:4px;min-width:0}
+.track-tab strong{color:var(--text);font-size:14px;font-weight:750}
+.track-tab span{font-size:11px}
+.track-tab[aria-pressed=true]{border-color:var(--gold);background:linear-gradient(145deg,#2a3329,#1b2422);box-shadow:inset 0 0 0 1px #7b663e}
+.track-tab[aria-pressed=true] strong{color:var(--gold)}
+.year-summary{display:flex;align-items:center;flex-wrap:wrap;gap:10px 15px;margin:16px 0 24px;padding:13px 15px;border-radius:10px;background:var(--panel2);border:1px solid #354641}
+.year-summary strong{font-size:14px}
+.year-summary small{font-size:11px;color:var(--muted)}
+.year-summary .summary-pill{border-radius:99px;padding:4px 9px;border:1px solid #a98a4b;color:var(--gold);font-weight:700;font-size:11px}
+.year-summary .summary-pill.extra{background:#383020}
+.month-nav{display:grid;grid-template-columns:47px 1fr 47px;align-items:center;gap:10px;margin-top:8px}
+.month-nav h3{text-align:center;font-size:clamp(27px,4vw,36px);letter-spacing:-.04em}
+.icon-btn{height:42px;width:42px;border-radius:50%;background:var(--panel2);color:var(--text);border:1px solid var(--line);font-size:30px;line-height:1}
+.icon-btn:hover{border-color:var(--gold)}
+.quick-nav{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:9px;margin:8px 0 16px}
+.quick-nav button,.quick-nav select{background:#23302f;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:6px 11px;font-size:12px}
+.quick-nav label{color:var(--muted);font-size:12px}
+.quick-nav select{margin-left:6px}
+.legend{display:flex;justify-content:center;flex-wrap:wrap;gap:8px 14px;color:var(--muted);font-size:10px;margin:0 0 13px}
+.legend span{display:inline-flex;gap:5px;align-items:center}
+.dot{width:7px;height:7px;display:block;flex:none;border-radius:50%}
+.dot.moon{background:var(--moon)}.dot.sabbath{background:var(--sabbath)}.dot.feast{background:var(--feast)}.dot.prep{background:var(--prep)}
+.month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;padding:9px;border-radius:14px;background:#111b1c;border:1px solid #304143}
+.weekday{font-size:11px;font-weight:700;letter-spacing:.09em;text-align:center;color:#c2cdc9;text-transform:uppercase;padding:8px 0}
+.day{min-height:91px;display:flex;flex-direction:column;align-items:flex-start;gap:5px;border:1px solid transparent;border-radius:9px;background:#1b2829;color:var(--text);padding:8px;min-width:0;text-align:left;overflow:hidden}
+.day:hover{background:#2b3b38}
+.day.outside{opacity:.33}
+.day.active{border-color:var(--gold);background:#29352e}
+.day.today .number{color:var(--gold);text-decoration:underline;text-underline-offset:3px}
+.day .number{font-size:13px;font-weight:700;line-height:1.2}
+.day .lunar-tag{font-size:10px;line-height:1.1;color:#b6bfad;white-space:nowrap;letter-spacing:-.03em}
+.day .dots{display:flex;gap:3px;flex-wrap:wrap;min-height:7px}
+.day .event-name{font-size:10px;color:var(--muted);line-height:1.15;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
+.selected-day{margin:22px 0 0;border-top:1px solid var(--line);padding-top:19px}
+.selected-day h3{font-size:clamp(21px,4vw,27px);margin:0 0 7px}
+.selected-day .lunar-context{color:var(--gold);font-size:13px;font-weight:700;margin:0 0 13px}
+.selected-day .muted{color:var(--muted);font-size:12px}
+.day-events{display:grid;gap:9px;margin-top:12px}
+.event{border:1px solid #344443;border-left:3px solid var(--line);border-radius:0 10px 10px 0;background:#1e2c2c;padding:12px 14px}
+.event.type-new_moon{border-left-color:var(--moon)}.event.type-sabbath{border-left-color:var(--sabbath)}.event.type-feast{border-left-color:var(--feast)}.event.type-preparation{border-left-color:var(--prep)}
+.event h4{font:700 15px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.event p{font-size:11px;margin:5px 0 0;color:var(--muted)}
+.event .marker{display:inline-block;font-weight:750;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);font-size:10px;margin:0 0 5px}
+.information,.downloads{margin-top:20px}
+.information h2,.downloads h2{font-size:26px}
+.information p:not(.eyebrow),.downloads p:not(.eyebrow){font-size:13px;line-height:1.7;color:var(--muted)}
+.information strong{color:var(--text)}
+.links{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}
+.links a{border:1px solid #806d4d;border-radius:9px;padding:9px 12px;text-decoration:none;font-size:12px;color:var(--gold);font-weight:700}
+.links a:hover{background:#302c23}
+footer{padding-top:24px;text-align:center;color:var(--muted);font-size:11px}
+@media(max-width:600px){
+ .shell{padding:12px 10px 42px}.masthead{padding:19px 7px 23px}
+ .calendar-shell{padding:13px 9px 19px}
+ .track-tab{padding:11px 9px}.track-tab strong{font-size:12px}.track-tab span{font-size:10px}
+ .year-summary{margin-bottom:17px}
+ .month-grid{gap:2px;padding:5px}
+ .weekday{font-size:10px}
+ .day{min-height:65px;align-items:center;padding:5px 2px;gap:5px}
+ .day .number{font-size:12px}
+ .day .lunar-tag{font-size:9px}
+ .day .event-name{display:none}
+ .day .dots{justify-content:center;gap:2px}
+ .dot{width:6px;height:6px}
+ .legend{gap:6px 9px}
+ .month-nav{grid-template-columns:38px 1fr 38px}
+ .icon-btn{width:37px;height:37px}
+ .information,.downloads{padding:16px}
+}
+@media(max-width:365px){.day{min-height:60px}.day .lunar-tag{font-size:8px}.month-grid{padding:3px;gap:1px}.track-tab span{font-size:9px}}
