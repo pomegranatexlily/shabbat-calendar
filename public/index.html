@@ -1,8 +1,74 @@
 <!doctype html>
-<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Shabbat Calendar</title>
-<style>body{font:17px system-ui;background:#101820;color:#eee;max-width:900px;margin:30px auto;padding:20px}a{color:#9ed4ff}li{margin:12px 0}select{font:inherit}h1{color:#e6c77a}</style>
-<h1>Shabbat Calendar</h1><p>Shared sacred calendar planning engine.</p><p>Projected entries use a mean-lunation cadence, not crescent-visibility predictions. Annual feasts await Abib anchors. All-day entries do not encode sunset times.</p>
-<p><a href="planning.ics">Planning ICS</a> | <a href="supplied.ics">Supplied dates ICS</a> | <a href="calendar.csv">Review CSV</a> | <a href="intercalation.csv">12/13-month year summary</a> | <a href="calendar.json">Bible-app JSON</a></p>
-<p>Subscribe to a hosted ICS feed for future updates; downloading and importing once does not create a subscription.</p>
-<section aria-labelledby="year-cycle"><h2 id="year-cycle">12- and 13-month calendar years (projected)</h2><p>Seasonal year boundaries are modeled from spring equinox and lunar month starts. Dates are planning projections, not observed crescent sightings or approved annual feasts.</p><ul id="intercalation"></ul></section><label>Year <select id="year"></select></label><p id="pending"></p><ul id="events"></ul>
-<script>fetch('calendar.json').then(r=>{if(!r.ok)throw Error('Data unavailable');return r.json()}).then(data=>{const cycle=document.getElementById('intercalation');for(const item of data.seasonal_years||[]){const li=document.createElement('li');li.textContent=String(item.year)+': '+String(item.month_count)+' lunar months; first month '+item.first_month_start+(item.thirteenth_month_start?'; 13th month starts '+item.thirteenth_month_start:'')+' [planning projection]';cycle.append(li)}const year=document.getElementById('year');for(const y of [...new Set(data.events.map(e=>e.date.slice(0,4)))]){const o=document.createElement('option');o.value=y;o.textContent=y;year.append(o)}function render(){const list=document.getElementById('events');list.replaceChildren();const p=data.pending.find(p=>String(p.year)===year.value);document.getElementById('pending').textContent=p?p.reason:'';for(const e of data.events.filter(e=>e.date.startsWith(year.value))){const li=document.createElement('li');li.textContent=e.date+' - '+e.title+' ['+e.status+']';list.append(li)}}year.onchange=render;render()}).catch(()=>{document.getElementById('pending').textContent='Calendar data has not been built or could not be loaded.'});</script></html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#11191a">
+<meta name="description" content="Shabbat Calendar — two parallel Israelite year tracks with projected new moons, Sabbaths, and draft feast dates.">
+<title>Shabbat Calendar | Parallel Covenant Years</title>
+<link rel="stylesheet" href="site.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<main class="shell">
+<header class="masthead">
+  <p class="eyebrow">Pomegranate × Lily · Sacred time</p>
+  <div class="brand">
+    <div class="moonmark" aria-hidden="true">◐</div>
+    <div><h1>Shabbat Calendar</h1><p>Two year cycles. One lunar rhythm.</p></div>
+  </div>
+  <p class="intro">Track the New Moon, lunar Shabbats, and feast planning dates in two parallel Israelite-year calendars. Month names are in English for now.</p>
+</header>
+<section class="calendar-shell" aria-labelledby="calendar-heading">
+  <div class="section-head">
+    <p class="eyebrow">Explore the covenant year</p>
+    <h2 id="calendar-heading">Two calendar tracks</h2>
+    <p>These cycles are offset by one lunar month. Neither overrides the other.</p>
+  </div>
+  <div id="track-tabs" class="track-tabs" role="group" aria-label="Choose Israelite calendar track">
+    <button type="button" data-track="earlier" class="track-tab" aria-pressed="true"><strong>Earlier calendar</strong><span>2027 begins March 9</span></button>
+    <button type="button" data-track="later" class="track-tab" aria-pressed="false"><strong>Later calendar</strong><span>2027 begins April 7</span></button>
+  </div>
+  <div id="year-summary" class="year-summary" aria-live="polite"></div>
+  <div class="month-nav">
+    <button id="previous-month" type="button" class="icon-btn" aria-label="Previous month">‹</button>
+    <h3 id="month-heading">Loading calendar…</h3>
+    <button id="next-month" type="button" class="icon-btn" aria-label="Next month">›</button>
+  </div>
+  <div class="quick-nav">
+    <button type="button" id="jump-today">Today</button>
+    <button type="button" id="jump-year-start">Year start</button>
+    <label>Year <select id="choose-year" aria-label="Select Israelite year"></select></label>
+  </div>
+  <div class="legend" aria-label="Event legend">
+    <span><i class="dot moon"></i>New Moon</span>
+    <span><i class="dot sabbath"></i>Shabbat</span>
+    <span><i class="dot feast"></i>Draft feast</span>
+    <span><i class="dot prep"></i>Preparation</span>
+  </div>
+  <div id="month-grid" class="month-grid" role="group" aria-label="Gregorian monthly calendar with lunar observances"></div>
+  <div id="selected-day" class="selected-day" aria-live="polite"></div>
+</section>
+<section class="information" aria-labelledby="integrity-heading">
+  <p class="eyebrow">Calendar integrity</p>
+  <h2 id="integrity-heading">Projected, not observed</h2>
+  <p>March 9 and April 7, 2027 are founder-designated <strong>planning starts</strong>. Later years use a mean lunar month and a spring-equinox approximation. Actual crescent visibility, sunset boundaries, and agricultural observations have not been verified.</p>
+  <p>Feast calculations follow <strong>draft, unapproved mapping rules</strong>, shown distinctly from New Moons and Shabbats. Shavuot remains pending a counting rule. The thirteenth month is a seasonal adjustment, not Jubilee.</p>
+</section>
+<section class="downloads" aria-labelledby="feeds-heading">
+  <p class="eyebrow">Portable records</p>
+  <h2 id="feeds-heading">Calendar feeds and data</h2>
+  <p>Subscribe to a planning ICS feed in Apple Calendar to receive updated projections. A one-time import will not keep updating.</p>
+  <div class="links">
+    <a href="earlier-planning.ics">Earlier calendar ICS</a>
+    <a href="later-planning.ics">Later calendar ICS</a>
+    <a href="track-calendar.csv">Two-track CSV</a>
+    <a href="track-years.csv">12/13-month summary</a>
+    <a href="calendar.json">Full JSON</a>
+    <a href="supplied.ics">Supplied historical events</a>
+  </div>
+</section>
+<footer>Shabbat Calendar · Pomegranate × Lily · Source dates and calculated dates remain distinct.</footer>
+</main>
+</body>
+</html>
