@@ -3,7 +3,7 @@ import json
 import unittest
 from pathlib import Path
 from datetime import date, timedelta
-from generate import build
+from generate import build, extend_window
 
 class ParallelTracksTests(unittest.TestCase):
     @classmethod
@@ -68,6 +68,14 @@ class ParallelTracksTests(unittest.TestCase):
         dates={m["index"]:m["date"] for m in self.result["months"] if m["status"]=="supplied"}
         self.assertEqual(dates,supplied)
         self.assertIn("2027-02-20",[e["date"] for e in self.result["events"] if e["status"]=="supplied"])
+
+    def test_rolling_year_window(self):
+        base=dict(self.config)
+        self.assertEqual(extend_window(base,2026)["end_year"],2034)
+        self.assertEqual(extend_window(base,2035)["end_year"],2043)
+        self.assertEqual(base["end_year"],2030,"source config must not be mutated")
+        with self.assertRaisesRegex(ValueError,"between 1 and 20"):
+            extend_window({**base,"rolling_years_ahead":0},2026)
 
     def test_valid_month_counts_and_day_ranges(self):
         for track in (self.early,self.late):
