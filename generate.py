@@ -133,10 +133,10 @@ def main():
         w = csv.DictWriter(f, fieldnames=fields, extrasaction='ignore')
         w.writeheader()
         for track_id, track in data['tracks'].items():
-            w.writerows(track['events'])
+            w.writerows(sorted(track['current_events'] + track['events'], key=lambda e: (e['date'], e['title'])))
     for track_id, track in data['tracks'].items():
         (out / (track_id + '-planning.ics')).write_bytes(
-            ics(track['events'], 'Shabbat Calendar - ' + track['label'] + ' (Planning)'))
+            ics(sorted(track['current_events'] + track['events'], key=lambda e: (e['date'], e['title'])), 'Shabbat Calendar - ' + track['label'] + ' (Planning)'))
     with (out / 'intercalation.csv').open('w', newline='', encoding='utf-8') as f:
         columns=['year','first_month_start','next_first_month_start','month_count','has_13th_month','thirteenth_month_start','status','march_equinox_utc_estimate']
         w=csv.DictWriter(f,fieldnames=columns,extrasaction='ignore')
