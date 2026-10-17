@@ -22,6 +22,8 @@ Both tracks use Day 1 = New Moon and Shabbat days 8, 15, 22, 29. The adjacent pr
 
 Annual feast labels in the dual-track feeds follow **unapproved** `config.feast_rules` for **planning only**, with `rule_status: unapproved_draft`. The original `events` feed continues to withhold unapproved annual feasts and preserves supplied dated observances. Shavuot still requires a confirmed counting rule. Do not present draft dates as religious determinations.
 
+The daily GitHub build keeps a **rolling eight-year horizon** (via `rolling_years_ahead`) beyond the current UTC year, so the generated CSV/JSON/ICS files keep extending automatically as years pass. This does **not** turn mean-lunation forecasts into verified sightings. Historical anchors are never overwritten. Tests of the fixed 2027–2030 sample configuration remain deterministic.
+
 The public website at https://pomegranatexlily.github.io/shabbat-calendar/ displays an interactive seven-column Gregorian month grid, a two-track toggle, lunar month/day labels, 12-/13-month summaries, and event details. The full JSON is available at https://pomegranatexlily.github.io/shabbat-calendar/calendar.json for Oustory or other apps.
 
 Verification: `python -m unittest -v test_intercalation.py test_dual_tracks.py`.
