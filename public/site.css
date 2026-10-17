@@ -90,3 +90,15 @@ footer{padding-top:24px;text-align:center;color:var(--muted);font-size:11px}
  .information,.downloads{padding:16px}
 }
 @media(max-width:365px){.day{min-height:60px}.day .lunar-tag{font-size:8px}.month-grid{padding:3px;gap:1px}.track-tab span{font-size:9px}}
+
+/* Immediately visible next-observance card, accessible from either track. */
+.up-next{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 12px;width:100%;margin:17px 0 12px;padding:15px 17px;text-align:left;border-radius:12px;border:1px solid var(--gold2);background:linear-gradient(110deg,#302e22,#20312f);color:var(--text)}
+.up-next:hover,.up-next:focus-visible{border-color:var(--gold);background:linear-gradient(110deg,#393423,#283b35)}
+.up-next-label{grid-column:1/-1;color:var(--gold);font-size:10px;letter-spacing:.12em;font-weight:750}
+.up-next-date{font-family:Georgia,serif;font-size:clamp(19px,4vw,27px);line-height:1.25;grid-column:1/-1}
+.up-next-meta{grid-column:1/-1;color:var(--muted);font-size:12px}
+.up-next[hidden]{display:none}
+.feed-details{margin-top:14px}
+.feed-details summary{cursor:pointer;font-weight:700;color:var(--gold);padding:8px 0}
+.feed-details .links{margin-top:8px}
+@media(max-width:600px){.up-next{margin-top:14px;padding:13px 14px}.up-next-date{font-size:22px}}
