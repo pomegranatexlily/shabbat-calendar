@@ -102,5 +102,6 @@
       "later": "2027-04-07"
     }
   },
-  "track_notes": "2027 year starts are user-designated planning anchors, NOT observed crescents; subsequent years are provisional equinox/lunation model."
+  "track_notes": "2027 year starts are user-designated planning anchors, NOT observed crescents; subsequent years are provisional equinox/lunation model.",
+  "rolling_years_ahead": 8
 }
