@@ -22,14 +22,14 @@
 
   function eventsIndex(track){
     const d=new Map();
-    for(const e of track.events){
+    for(const e of [...(track.current_events||[]),...track.events]){
       if(!d.has(e.date))d.set(e.date,[]);
       d.get(e.date).push(e);
     }
     return d;
   }
   function monthOn(track,day){
-    return track.months.find(m=>m.start<=day&&m.end>=day);
+    return [...(track.current_months||[]),...track.months].find(m=>m.start<=day&&m.end>=day);
   }
   function yearOn(track,day){
     return track.years.find(y=>y.start_date<=day&&y.next_start_date>day);
@@ -43,11 +43,37 @@
       return {iso:iso(d),day:d.getUTCDate(),inMonth:d.getUTCMonth()===month};
     });
   }
+  function todayIso(){return iso(createDate(...getToday()))}
+  function nextShabbat(track){
+    const current=todayIso();
+    return [...(track.current_events||[]),...track.events]
+      .filter(e=>e.kind==="sabbath"&&e.date>=current)
+      .sort((a,b)=>a.date.localeCompare(b.date))[0]||null;
+  }
+  function renderUpNext(track){
+    const target=byId("up-next"),next=nextShabbat(track);
+    target.replaceChildren();
+    target.hidden=!next;
+    if(!next)return;
+    target.append(node("span","UP NEXT · SHABBAT","up-next-label"));
+    target.append(node("strong",fmt(next.date),"up-next-date"));
+    target.append(node("span","Lunar Day "+next.lunar_day+
+      (next.source==="user_supplied_month_start"?" · From supplied New Moon":" · Projected lunar month"),"up-next-meta"));
+    target.onclick=()=>jumpTo(next.date);
+  }
   function renderYearSummary(track){
-    const current=yearOn(track,state.selected);
-    const record=current||track.years.find(y=>y.year===+byId("choose-year").value)||track.years[0];
     const box=byId("year-summary");
     box.replaceChildren();
+    const lunar=monthOn(track,state.selected);
+    const current=yearOn(track,state.selected);
+    if(lunar&&!current){
+      box.append(node("strong","Current lunar cycle"));
+      box.append(node("small","New Moon "+fmt(lunar.start)));
+      box.append(node("small","Next projected New Year · "+fmt(track.years[0].start_date)));
+      byId("choose-year").value="current";
+      return;
+    }
+    const record=current||track.years.find(y=>y.year===+byId("choose-year").value)||track.years[0];
     box.append(node("strong","Israelite year "+record.year));
     box.append(node("span",record.month_count+" lunar months","summary-pill"+(record.has_13th_month?" extra":"")));
     box.append(node("small","Year begins "+fmt(record.start_date)));
@@ -60,7 +86,11 @@
     const d=state.selected,events=dayEvents.get(d)||[],lunar=monthOn(track,d),year=yearOn(track,d);
     box.append(node("h3",fmt(d)));
     if(lunar){
-      box.append(node("p","Israelite year "+year.year+" · Month "+lunar.month+(lunar.is_thirteenth?" (13th / intercalary)":"")+" · Day "+(Math.round((dt(d)-dt(lunar.start))/86400000)+1),"lunar-context"));
+      const lunarDay=Math.round((dt(d)-dt(lunar.start))/86400000)+1;
+      const label=year&&lunar.month?
+        "Israelite year "+year.year+" · Month "+lunar.month+(lunar.is_thirteenth?" (13th / intercalary)":"")+" · Day "+lunarDay:
+        "Lunar Day "+lunarDay+" · Month began "+fmt(lunar.start);
+      box.append(node("p",label,"lunar-context"));
     }else{
       box.append(node("p","Outside the projected years available for this track; no observance has been inferred.","muted"));
     }
@@ -70,7 +100,7 @@
       let badge=e.rule_status==="unapproved_draft"?"Draft feast — not approved":
                 e.status==="projected"?"Projected from lunar month model":"Based on supplied month start";
       card.append(node("span",badge,"marker"),node("h4",e.title));
-      card.append(node("p","Month "+e.month+", Day "+e.lunar_day+" · "+e.track+" track"));
+      card.append(node("p",(e.month?"Month "+e.month+", ":"")+"Lunar Day "+e.lunar_day+" · "+(state.track==="earlier"?"Early Start":"Late Start")));
       if(e.rule_status==="unapproved_draft"){
         card.append(node("p","Rule is a planning proposal; Shavuot and annual observance approvals remain pending."));
       }else if(e.status==="projected"){
@@ -92,12 +122,12 @@
       const button=node("button",undefined,"day"+(cell.inMonth?"":" outside")+(cell.iso===state.selected?" active":"")+(cell.iso===today?" today":""));
       button.type="button";button.dataset.date=cell.iso;
       button.setAttribute("aria-pressed",String(cell.iso===state.selected));
-      const label=fmt(cell.iso)+(lunar?", month "+lunar.month+", day "+(Math.round((dt(cell.iso)-dt(lunar.start))/86400000)+1):"");
+      const label=fmt(cell.iso)+(lunar?", "+(lunar.month?"month "+lunar.month+", ":"")+"lunar day "+(Math.round((dt(cell.iso)-dt(lunar.start))/86400000)+1):"");
       button.setAttribute("aria-label",label+(events.length?", "+events.map(e=>e.title).join(", "):""));
       button.append(node("span",String(cell.day),"number"));
       if(lunar){
         const d=Math.round((dt(cell.iso)-dt(lunar.start))/86400000)+1;
-        button.append(node("span","M"+lunar.month+" · "+d,"lunar-tag"));
+        button.append(node("span",lunar.month?"M"+lunar.month+" · "+d:"Day "+d,"lunar-tag"));
       }
       if(events.length){
         const dots=node("div",undefined,"dots");
@@ -118,6 +148,7 @@
   function draw(){
     const track=state.data.tracks[state.track];
     renderYearSummary(track);
+    renderUpNext(track);
     renderMonth(track);
     renderSelectedDay(track);
     for(const b of byId("track-tabs").querySelectorAll("button")){
@@ -134,15 +165,15 @@
       if(!data.tracks[trackId].years?.length||!data.tracks[trackId].months?.length)throw Error("Empty lunar-year series");
     }
     const yearChoice=byId("choose-year");
+    const currentOption=node("option","Current");currentOption.value="current";yearChoice.append(currentOption);
     for(const y of data.tracks.earlier.years){
       const opt=node("option",String(y.year));opt.value=String(y.year);yearChoice.append(opt);
     }
     function changeTrack(to){
       state.track=to;
       dayEvents=eventsIndex(data.tracks[to]);
-      const selectedYear=+yearChoice.value||2027;
-      const rec=data.tracks[to].years.find(y=>y.year===selectedYear)||data.tracks[to].years[0];
-      jumpTo(rec.start_date);
+      // Switching religious year starts must not drag the user to 2027.
+      jumpTo(state.selected||todayIso());
     }
     for(const b of byId("track-tabs").querySelectorAll("button"))b.onclick=()=>changeTrack(b.dataset.track);
     byId("previous-month").onclick=()=>{
@@ -158,13 +189,15 @@
       jumpTo(y.start_date);
     };
     yearChoice.onchange=()=>{
+      if(yearChoice.value==="current"){jumpTo(todayIso());return}
       const year=data.tracks[state.track].years.find(y=>y.year===+yearChoice.value);
       if(year)jumpTo(year.start_date);
     };
     dayEvents=eventsIndex(data.tracks.earlier);
-    // Begin at the user's designated earlier 2027 New Moon; Today is an
-    // explicit alternative, since today's civil date may lack model coverage.
-    jumpTo(data.tracks.earlier.years[0].start_date);
+    // Open the actual current Gregorian month, focused on the upcoming
+    // Shabbat so the user sees their next observance immediately.
+    const next=nextShabbat(data.tracks.earlier);
+    jumpTo(next?.date||todayIso());
   }
   fetch("calendar.json",{cache:"no-cache"}).then(r=>{
     if(!r.ok)throw Error("Calendar data not available");
