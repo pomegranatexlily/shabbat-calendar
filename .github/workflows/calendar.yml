@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Verify seasonal 12- and 13-month calculations
-        run: python -m unittest -v test_intercalation.py
+        run: python -m unittest -v test_intercalation.py test_dual_tracks.py
       - run: python generate.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
