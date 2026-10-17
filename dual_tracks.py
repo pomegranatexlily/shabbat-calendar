@@ -143,12 +143,48 @@ def create_tracks(months, later_years, config):
                         "source": "config.feast_rules",
                     })
 
+        # Bridge from supplied October 2026 into the first 2027 year.
+        # Keep the current lunar dates visible without inventing a prior
+        # religious year/month number pending historical reconciliation.
+        current_months, current_events = [], []
+        first_year_index = starts[config["start_year"]]
+        for i in range(min(by_index), first_year_index):
+            moon, next_moon = by_index[i], by_index[i + 1]
+            count = (_date(next_moon["date"]) - _date(moon["date"])).days
+            if count not in (29, 30):
+                raise ValueError("Invalid current-cycle lunar month length")
+            current_months.append({
+                "year": None, "month": None,
+                "start": moon["date"],
+                "end": (_date(next_moon["date"]) - timedelta(days=1)).isoformat(),
+                "days": count, "month_index": i,
+                "status": moon["status"], "is_thirteenth": False,
+                "year_assignment_status": "awaiting_historical_2026_anchor",
+            })
+            for day, title, kind in [
+                (1, "New Moon", "new_moon"),
+                *[(d - 1, "Preparation for Shabbat", "preparation") for d in SHABBAT_DAYS],
+                *[(d, "Shabbat", "sabbath") for d in SHABBAT_DAYS],
+            ]:
+                when = (_date(moon["date"]) + timedelta(days=day - 1)).isoformat()
+                current_events.append({
+                    "id": _uid(track_id, "current", i, day, kind),
+                    "date": when, "title": title, "kind": kind,
+                    "track": track_id, "year": None, "month": None,
+                    "lunar_day": day, "month_index": i, "status": moon["status"],
+                    "rule_status": "user_calendar_day_pattern",
+                    "source": ("user_supplied_month_start" if moon["status"] == "supplied"
+                               else "projected_lunar_series"),
+                })
+
         events.sort(key=lambda e: (e["date"], e["kind"], e["title"]))
-        if len({e["id"] for e in events}) != len(events):
+        if len({e["id"] for e in events + current_events}) != len(events + current_events):
             raise AssertionError("Duplicate track event identifiers")
         tracks[track_id] = {
             "id": track_id, **info, "years": records, "months": numbered,
             "events": events,
+            "current_months": current_months,
+            "current_events": current_events,
             "feasts_status": "DRAFT_PROJECTIONS_NOT_APPROVED",
             "lunar_visibility": "NOT_VERIFIED",
         }
