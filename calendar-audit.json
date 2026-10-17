@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "status": "planning_arithmetic_checked_not_observation_verified",
+  "verified_2027_planning_year_starts": {
+    "earlier": "2027-03-09",
+    "later": "2027-04-07"
+  },
+  "2027_year_starts_observed": false,
+  "source_start_dates": "founder_supplied_date_not_independently_observed",
+  "future_dates": "mean_lunation_and_equinox_planning_model_not_ephemeris",
+  "checks": {
+    "lunar_months_checked": 209,
+    "year_span_classifications_checked": 16,
+    "event_positions_checked": 2361,
+    "supplied_start_dates_preserved": 5,
+    "parallel_tracks_month_offset": 1,
+    "2026_10_19_day8_shabbat": true
+  },
+  "unresolved": {
+    "local_crescent_visibility": "not_verified",
+    "local_sunset_boundaries": "not_established",
+    "Abib_or_agricultural_evidence": "not_supplied",
+    "annual_feast_rule_approval": "not_approved",
+    "intercalation_policy": "provisional_seasonal_model",
+    "Shavuot_counting": "not_selected",
+    "makeup_rules": "not_approved_no_automatic_second_shift",
+    "historical_2026_year_numbering": "not_reconciled"
+  },
+  "feast_rule_status": "unapproved_draft",
+  "date_assurance": "Planning only; not a certified religious observance or independently verified astronomical observation."
+}
