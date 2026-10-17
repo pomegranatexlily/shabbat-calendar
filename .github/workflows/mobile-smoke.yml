@@ -1,0 +1,47 @@
+name: Shabbat Calendar Mobile UI
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'public/**'
+      - 'generate.py'
+      - 'dual_tracks.py'
+      - 'intercalation.py'
+      - 'config.json'
+      - 'scripts/ui_smoke.mjs'
+      - '.github/workflows/mobile-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build both calendar tracks
+        run: python generate.py
+      - name: Check browser JavaScript syntax
+        run: node --check public/app.js
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Serve generated website
+        run: python3 -m http.server 8766 --bind 127.0.0.1 --directory public > /tmp/shabbat-site.log 2>&1 &
+      - name: Validate two-track calendar on iPhone-size viewport
+        run: node scripts/ui_smoke.mjs
+      - name: Upload visual previews
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shabbat-dual-track-mobile
+          path: out/screenshots
+          if-no-files-found: warn
+          retention-days: 14
