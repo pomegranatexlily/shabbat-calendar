@@ -75,3 +75,11 @@ The projection uses a 29.530588853-day mean lunar month and a 365.2422-day mean 
 **Planning projections only.** None of these dates is presented as an observed crescent or approved annual Abib anchor. The five user-supplied 2026–2027 monthly starts remain unchanged. The claimed older 2024–2025 history has not yet been imported into this repository, so this is not a four-year historical calibration. Annual feast mappings, Jubilee, and local sunset-time boundaries remain separate. Before finalizing dates, verify borderline equinox dates against a precision ephemeris and the founder's chosen year-start rule.
 
 Run `python -m unittest -v test_intercalation.py` to test source-date preservation, 12/13-month classification, the extra month, and the absence of unapproved feasts.
+
+## October 17, 2026 — Stable GitHub Pages calendar feed
+
+The production Oustory reader recorded `404` from the Shabbat Calendar live-feed URL even though the calendar workflow had succeeded. The site was being deployed by both the custom `Build calendar` workflow and GitHub's separate automatic branch Pages build; the branch publishing path did not contain the generated `calendar.json` file.
+
+The exact audited output from the existing generator is now checked in at both `calendar.json` (repository root for branch Pages) and `public/calendar.json` (the existing custom workflow source). Likewise `calendar-audit.json` exists in both locations. A small root `index.html` links to the site in `public/` if GitHub serves the branch root, and `.nojekyll` preserves the static files as-is. No calendrical calculations, Shabbat rules, or approval status changed.
+
+The existing daily `Build calendar` workflow refreshes and checks both feed copies and commits changes on main when generated data changes. A live URL check verifies the actual published `/shabbat-calendar/calendar.json` response in addition to a successful deployment status. The source parity test fails CI if the two publication roots diverge. Recommended long-term deployment setting: **Settings → Pages → Build and deployment → Source: GitHub Actions**, so no second branch Pages publication can supersede the custom workflow. The connector used for this repair does not change that repository setting.
