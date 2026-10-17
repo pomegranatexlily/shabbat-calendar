@@ -85,6 +85,41 @@ class ParallelTracksTests(unittest.TestCase):
         self.assertEqual(dates,supplied)
         self.assertIn("2027-02-20",[e["date"] for e in self.result["events"] if e["status"]=="supplied"])
 
+    def test_integrity_audit_never_claims_observed_feasts(self):
+        verification=self.result["verification"]
+        self.assertEqual(verification["version"],1)
+        self.assertEqual(verification["status"],"planning_arithmetic_checked_not_observation_verified")
+        self.assertEqual(verification["verified_2027_planning_year_starts"],{
+            "earlier":"2027-03-09","later":"2027-04-07"
+        })
+        self.assertFalse(verification["2027_year_starts_observed"])
+        self.assertTrue(verification["checks"]["2026_10_19_day8_shabbat"])
+        self.assertEqual(verification["checks"]["supplied_start_dates_preserved"],
+                         len(self.config["supplied_month_starts"]))
+        self.assertEqual(verification["unresolved"]["Shavuot_counting"],"not_selected")
+        self.assertEqual(verification["unresolved"]["annual_feast_rule_approval"],"not_approved")
+        self.assertEqual(verification["unresolved"]["local_crescent_visibility"],"not_verified")
+        self.assertTrue(all(e.get("rule_status")=="unapproved_draft" for t in
+                            self.result["tracks"].values() for e in t["events"] if e["kind"]=="feast"))
+
+    def test_audit_rejects_corrupted_lunar_day(self):
+        from calendar_audit import audit_calendar
+        import copy
+        corrupted=copy.deepcopy(self.result)
+        bad=next(e for e in corrupted["tracks"]["earlier"]["current_events"] if e["date"]=="2026-10-19")
+        bad["lunar_day"]=9
+        with self.assertRaisesRegex(ValueError,"impossible event lunar day"):
+            audit_calendar(corrupted,self.config)
+
+    def test_audit_rejects_unauthorized_approved_feast(self):
+        from calendar_audit import audit_calendar
+        import copy
+        corrupted=copy.deepcopy(self.result)
+        feast=next(e for e in corrupted["tracks"]["later"]["events"] if e["kind"]=="feast")
+        feast["rule_status"]="approved"
+        with self.assertRaisesRegex(ValueError,"appears approved"):
+            audit_calendar(corrupted,self.config)
+
     def test_rolling_year_window(self):
         base=dict(self.config)
         self.assertEqual(extend_window(base,2026)["end_year"],2034)
