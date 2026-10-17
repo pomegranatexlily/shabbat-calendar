@@ -5,6 +5,11 @@ on:
     branches: [main]
     paths:
       - 'public/**'
+      - 'calendar.json'
+      - 'calendar-audit.json'
+      - '.nojekyll'
+      - 'index.html'
+      - 'scripts/test_publication_source.py'
       - 'generate.py'
       - 'calendar_audit.py'
       - 'dual_tracks.py'
@@ -27,6 +32,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Validate both published calendar source roots
+        run: python3 scripts/test_publication_source.py
       - name: Build both calendar tracks
         run: python generate.py
       - name: Check browser JavaScript syntax
