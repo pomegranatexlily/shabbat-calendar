@@ -28,6 +28,14 @@ The public website at https://pomegranatexlily.github.io/shabbat-calendar/ displ
 
 Verification: `python -m unittest -v test_intercalation.py test_dual_tracks.py`.
 
+## Release 3 verification audit
+
+Every generated `calendar.json` now includes a machine-readable `verification` object, also exported as `public/calendar-audit.json`. It checks all published 29/30-day lunar spans, Day 1/8/15/22/29 event positions, the current October 19, 2026 Day 8 Shabbat, duplicate identifiers, the March 9/April 7, 2027 planning year starts, and 12/13-month classification. Invalid arithmetic or an unauthorized "approved" feast flag stops the build.
+
+This is **arithmetic integrity, not astronomical or religious ratification**. `verification.unresolved` explicitly identifies crescent visibility, local sunset, Abib/barley observation, 12/13-month policy, Shavuot counting, and draft makeup/feast rules as open. Current-source dates are marked **supplied**, which means founder-provided, **not independently sighted**. Projected dates are mean-lunation/equinox approximations, not an ephemeris. The engine does not create a Shavuot event, does not assign unapproved religious year numbering to 2026, and does not treat a thirteenth month as Jubilee.
+
+Oustory uses this audit as a transparency panel and links date-specific suggested Scripture readings without changing the underlying calendar or source verses.
+
 ## Run
 Python 3.10+: `python generate.py`. No dependencies required. Outputs go into public/.
 
