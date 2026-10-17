@@ -3,7 +3,28 @@
 Shared calendar engine for a Shabbat website, Apple Calendar feeds, and Bible-app JSON data.
 
 ## Status
-This is a planning scaffold, not a verified future feast calendar. Supplied dates remain distinct from projections. Future month starts use a mean-lunation interval, NOT actual crescent visibility. The engine also projects seasonal 12- and 13-month years. Annual feasts are withheld until separately approved Abib anchors are supplied. Shavuot remains pending an explicit counting rule. Draft feast mappings and makeup switches require review.
+This is a planning scaffold, not a verified future feast calendar. Supplied dates remain distinct from projections. Future month starts use a mean-lunation interval, NOT actual crescent visibility. The engine generates two independently numbered seasonal years separated by one lunar month. Its legacy event feed withholds annual feasts until separately approved Abib anchors are supplied; the two-track planning feeds include clearly labeled DRAFT feast projections from config rules, not approved observances. Shavuot remains pending an explicit counting rule. Draft feast mappings and makeup switches require review.
+
+## Two parallel Israelite calendar tracks
+
+As designated by the founder for the 2027 planning model:
+
+| | Earlier track | Later track |
+|---|---|---|
+| Year 2027 begins (New Moon / Month 1 Day 1) | 2027-03-09 | 2027-04-07 |
+| First Shabbat (Month 1 Day 8) | 2027-03-16 | 2027-04-14 |
+| Passover, DRAFT Day 14 rule (unapproved) | 2027-03-22 | 2027-04-20 |
+| 2028 13th month begins, projected | 2029-02-14 | 2029-03-16 |
+
+These tracks use **the same series of astronomical month starts** but assign different Israelite **year and month numbers**. The April 7 New Moon is Earlier Month 2 Day 1 and Later Month 1 Day 1. Their feast dates are independently derived from each track's Month 1; makeup month shifts are **not added again**, which would double-count observances.
+
+Both tracks use Day 1 = New Moon and Shabbat days 8, 15, 22, 29. The adjacent preparation days are 7, 14, 21, 28. Each 2027 anchor is user-designated as a **planning year start**, not an observed crescent. Subsequent years and 13th-month placement use the equinox/lunation planning model. No Jubilee association is inferred. The supplied October 2026–February 2027 month starts and Purim notes remain unchanged, and older 2024–2025 records have not yet been reconciled.
+
+Annual feast labels in the dual-track feeds follow **unapproved** `config.feast_rules` for **planning only**, with `rule_status: unapproved_draft`. The original `events` feed continues to withhold unapproved annual feasts and preserves supplied dated observances. Shavuot still requires a confirmed counting rule. Do not present draft dates as religious determinations.
+
+The public website at https://pomegranatexlily.github.io/shabbat-calendar/ displays an interactive seven-column Gregorian month grid, a two-track toggle, lunar month/day labels, 12-/13-month summaries, and event details. The full JSON is available at https://pomegranatexlily.github.io/shabbat-calendar/calendar.json for Oustory or other apps.
+
+Verification: `python -m unittest -v test_intercalation.py test_dual_tracks.py`.
 
 ## Run
 Python 3.10+: `python generate.py`. No dependencies required. Outputs go into public/.
@@ -16,7 +37,10 @@ In repository Settings > Pages, choose GitHub Actions as the source, then run th
 - supplied.ics: entries based on supplied anchors plus supplied observances
 - calendar.json: shared app data and pending-year information
 - calendar.csv: reviewable event table
-- intercalation.csv: projected seasonal-year start dates and 12-/13-month counts
+- intercalation.csv: projected later-track year starts and 12-/13-month counts
+- track-years.csv: both tracks, their year starts, 12-/13-month counts and extra-month starts
+- track-calendar.csv: event list tagged with earlier or later, year, month, lunar day and rule status
+- earlier-planning.ics / later-planning.ics: separate subscribable all-day planning feeds (draft feasts explicitly labeled)
 
 Apple Calendar must subscribe to the hosted ICS URL to receive future changes. One-time imports do not update.
 
