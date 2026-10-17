@@ -4,6 +4,7 @@ import uuid
 from datetime import date, timedelta, datetime, timezone
 from pathlib import Path
 from intercalation import seasonal_years, annotate_months
+from dual_tracks import create_tracks
 
 MEAN_LUNATION = 29.530588853
 
@@ -25,6 +26,7 @@ def build(c):
         assert (date.fromisoformat(b['date']) - date.fromisoformat(a['date'])).days in (29, 30), 'Invalid month gap'
     yearly_intercalation = seasonal_years(months, c['start_year'], c['end_year'])
     annotate_months(months, yearly_intercalation)
+    tracks = create_tracks(months, yearly_intercalation, c)
     published_months = [m for m in months if date.fromisoformat(m['date']) < hi]
     by_index = {m['index']: m for m in months}
     events = []
@@ -66,7 +68,7 @@ def build(c):
             events.append({'id': str(uuid.uuid5(uuid.NAMESPACE_URL, 'shabbat-calendar/' + key)), **item, 'kind': 'feast', 'window': 'primary', 'status': 'supplied', 'month_index': None, 'lunar_day': None})
     events.sort(key=lambda e: (e['date'], e['title']))
     assert len({e['id'] for e in events}) == len(events), 'Duplicate event IDs'
-    return {'months': published_months, 'seasonal_years': yearly_intercalation, 'events': events, 'pending': pending, 'method': '12-/13-month equinox-aligned planning projection from mean lunar months. Neither a crescent sighting nor a finalized annual feast ruling.'}
+    return {'schema_version': 2, 'months': published_months, 'seasonal_years': yearly_intercalation, 'tracks': tracks, 'events': events, 'pending': pending, 'method': '12-/13-month equinox-aligned planning projection from mean lunar months. Neither a crescent sighting nor a finalized annual feast ruling.'}
 
 def escape(s):
     return s.replace('\\', '\\\\').replace('\n', '\\n').replace(';', '\\;').replace(',', '\\,')
@@ -86,8 +88,8 @@ def ics(events, name):
     stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
     for e in events:
         d = date.fromisoformat(e['date'])
-        title = e['title'] + (' [Projected]' if e['status'] == 'projected' else '')
-        note = 'Mean-lunation planning projection; not a visibility prediction.' if e['status'] == 'projected' else 'Based on user-supplied dates.'
+        title = e['title'] + (' [DRAFT FEAST]' if e.get('rule_status') == 'unapproved_draft' else (' [Projected]' if e['status'] == 'projected' else ''))
+        note = 'Draft feast calculation, not approved; do not treat as a confirmed observance.' if e.get('rule_status') == 'unapproved_draft' else ('Mean-lunation planning projection; not a visibility prediction.' if e['status'] == 'projected' else 'Based on user-supplied dates.')
         lines.extend(['BEGIN:VEVENT', 'UID:' + e['id'] + '@shabbat-calendar', 'DTSTAMP:' + stamp, f'DTSTART;VALUE=DATE:{d:%Y%m%d}', f'DTEND;VALUE=DATE:{d + timedelta(days=1):%Y%m%d}', 'SUMMARY:' + escape(title), 'DESCRIPTION:' + escape(note + ' All-day marker; no sunset time encoded.'), 'TRANSP:TRANSPARENT', 'END:VEVENT'])
     lines.append('END:VCALENDAR')
     return ('\r\n'.join(fold(s) for s in lines) + '\r\n').encode('utf-8')
@@ -98,6 +100,26 @@ def main():
     out = Path('public')
     out.mkdir(exist_ok=True)
     (out / 'calendar.json').write_text(json.dumps(data, indent=2), encoding='utf-8')
+    # Parallel feeds use one lunar series; never duplicate a makeup
+    # observance within one track when the other track represents it.
+    with (out / 'track-years.csv').open('w', newline='', encoding='utf-8') as f:
+        fields = ['track', 'year', 'start_date', 'next_start_date', 'month_count',
+                  'has_13th_month', 'thirteenth_month_start', 'status']
+        w = csv.DictWriter(f, fieldnames=fields, extrasaction='ignore')
+        w.writeheader()
+        for track_id, track in data['tracks'].items():
+            for entry in track['years']:
+                w.writerow({'track': track_id, **entry})
+    with (out / 'track-calendar.csv').open('w', newline='', encoding='utf-8') as f:
+        fields = ['id','date','track','year','month','lunar_day','title','kind',
+                  'status','rule_status','source','month_index']
+        w = csv.DictWriter(f, fieldnames=fields, extrasaction='ignore')
+        w.writeheader()
+        for track_id, track in data['tracks'].items():
+            w.writerows(track['events'])
+    for track_id, track in data['tracks'].items():
+        (out / (track_id + '-planning.ics')).write_bytes(
+            ics(track['events'], 'Shabbat Calendar - ' + track['label'] + ' (Planning)'))
     with (out / 'intercalation.csv').open('w', newline='', encoding='utf-8') as f:
         columns=['year','first_month_start','next_first_month_start','month_count','has_13th_month','thirteenth_month_start','status','march_equinox_utc_estimate']
         w=csv.DictWriter(f,fieldnames=columns,extrasaction='ignore')
